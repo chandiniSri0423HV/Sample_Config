@@ -1,0 +1,69 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'Integration_File', defaultValue: 'SAMPLE_LOOKUP_01.00.0000.iar', description: 'Path to the IAR file for deployment')
+        string(name: 'Integration_API_URL', defaultValue: 'https://testinstance-idevjxz332qf-ia.integration.ocp.oraclecloud.com/ic/api/integration/v1/integrations/archive', description: 'URL of the instance for deploying the IAR file')
+        string(name: 'Connection_Name', defaultValue: 'SAMPLE_REST', description: 'Name of the connection for configuration')
+        string(name: 'Connection_File', defaultValue: 'restconnproperties.json', description: 'Path to the JSON file for configuring the connection')
+        string(name: 'Lookup_Name', defaultValue: 'StateLookup', description: 'Name of the lookup to import')
+        string(name: 'Lookup_File', defaultValue: 'lookupNew.json', description: 'Path to the JSON file for lookup import')
+        string(name: 'Lookup_File_Path', defaultValue: 'C:/Docs/Git/Sample_Config/CountryLookup.csv', description: 'Path to the CSV file for lookup update')
+    }
+
+    stages {
+        stage('Generate Token') {
+            steps {
+                bat '''
+                curl -s "https://idcs-b0bf5647dbe34af4914cf420cba0294c.identity.oraclecloud.com/oauth2/v1/token" \
+                --header "Authorization: Basic NmQxMGZmMDQ5OTU0NGE2NjllZWM3ZmE0NGM3NGEwNmY6NDJlNjg2MDYtMGY0NC00YTdiLWIxM2EtOTllMTlmYzI3ZTA2" \
+                --header "Content-Type: application/x-www-form-urlencoded" \
+                --data-urlencode "grant_type=client_credentials" \
+                --data-urlencode "scope=https://59D040337868449CB0014B649FE827EC.integration.ocp.oraclecloud.com:443urn:opc:resource:consumer::all" \
+                --data-urlencode "client_id=6d10ff0499544a669eec7fa44c74a06f" \
+                --data-urlencode 'client_secret=42e68606-0f44-4a7b-b13a-99e19fc27e06' --insecure -o token_OIC3.json
+                '''
+            }
+        }
+
+        stage('Generate Token') {
+            steps {
+                bat '''		
+				curl -X POST --header "Authorization: Basic ZGV2b3BzX3VzZXI6T2ljX0plbmtpbnMjMjAyMw==" --header "Content-Type:application/json" --header "X-HTTP-Method-Override:PATCH" -d @C:/Docs/Git/Sample_Config/Deactivation.json -d 'enableAsyncActivationMode=true' "https://testinstance-idevjxz332qf-ia.integration.ocp.oraclecloud.com/ic/api/integration/v1/integrations/SAMPLE_CHANDINI|01.00.0000"
+                '''
+            }
+        }
+		
+        stage('Deployment of IAR Files to OIC') {
+            steps {
+                bat '''
+                curl -X PUT --header "Authorization: Basic cG9jdXNlcjpIVk9JQ01heSMyMDIz" --header "Accept:application/json" --form file=@${params.Integration_File} --form type=application/octet-stream  ${params.Integration_API_URL}
+                '''
+            }
+        }
+
+        stage('Configuring a connection') {
+            steps {
+                bat '''
+                curl --header "Authorization: Basic ZGV2b3BzX3VzZXI6T2ljX0plbmtpbnMjMjAyMw==" --header "X-HTTP-Method-Override:PATCH" --header "Content-Type:application/json" -d @${params.Connection_File} https://testinstance-idevjxz332qf-ia.integration.ocp.oraclecloud.com/ic/api/integration/v1/connections/${params.Connection_Name}
+                '''
+            }
+        }
+        
+        stage('Configuring a lookup') {
+            steps {
+                bat '''
+                curl --location --request PUT --header "Authorization: Basic ZGV2b3BzX3VzZXI6T2ljX0plbmtpbnMjMjAyMw==" --header "Content-Type:application/json" -d @${params.Lookup_File} https://testinstance-idevjxz332qf-ia.integration.ocp.oraclecloud.com/ic/api/integration/v1/lookups/${params.Lookup_Name}
+                '''
+            }
+        }
+        
+        stage('Updating a lookup') {
+            steps {
+                bat '''    
+                curl -X PUT --header "Authorization: Basic ZGV2b3BzX3VzZXI6T2ljX0plbmtpbnMjMjAyMw==" -F file=@${params.Lookup_File_Path} -F type=application/octet-stream "https://testinstance-idevjxz332qf-ia.integration.ocp.oraclecloud.com/ic/api/integration/v1/lookups/archive"
+                '''
+            }
+        }
+    }
+}
