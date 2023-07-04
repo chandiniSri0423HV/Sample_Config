@@ -1,0 +1,11 @@
+{
+	"name": "CountryLookup",
+    "sourceType": "csv",
+    "sourcePath": "C:/Docs/Git/ChandiniSample/CountryLookup.csv",
+    "delimiter": ",",
+    "skipHeader": true,
+    "columns": [
+        "StateCode",
+        "StateName"
+    ]
+}
