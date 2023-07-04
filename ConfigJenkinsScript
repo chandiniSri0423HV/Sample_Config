@@ -6,8 +6,8 @@ pipeline {
         string(name: 'Integration API URL', defaultValue: 'https://testinstance-idevjxz332qf-ia.integration.ocp.oraclecloud.com/ic/api/integration/v1/integrations/archive', description: 'URL of the instance for deploying the IAR file')
         string(name: 'Connection Name', defaultValue: 'SAMPLE_REST', description: 'Name of the connection for configuration')
         string(name: 'Connection file', defaultValue: 'restconnproperties.json', description: 'Path to the JSON file for configuring the connection')
-		string(name: 'Lookup Name', defaultValue: 'StateLookup', description: 'Name of the lookup to update')
-        string(name: 'Lookup File', defaultValue: 'lookupNew.json', description: 'Path to the JSON file for lookup update')
+		string(name: 'Lookup Name', defaultValue: 'StateLookup', description: 'Name of the lookup to import')
+        string(name: 'Lookup File', defaultValue: 'lookupNew.json', description: 'Path to the JSON file for lookup import')
         string(name: 'Lookup File Path', defaultValue: 'C:/Docs/Git/Sample_Config/CountryLookup.csv', description: 'Path to the CSV file for lookup update')
        
     }
