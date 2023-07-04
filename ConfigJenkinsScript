@@ -3,11 +3,12 @@ pipeline {
 
     parameters {
         string(name: 'Integration File', defaultValue: 'SAMPLE_LOOKUP_01.00.0000.iar', description: 'Path to the IAR file for deployment')
-        string(name: 'API URL', defaultValue: 'https://testinstance-idevjxz332qf-ia.integration.ocp.oraclecloud.com/ic/api/integration/v1/integrations/archive', description: 'URL of the instance for deploying the IAR file')
+        string(name: 'Integration API URL', defaultValue: 'https://testinstance-idevjxz332qf-ia.integration.ocp.oraclecloud.com/ic/api/integration/v1/integrations/archive', description: 'URL of the instance for deploying the IAR file')
         string(name: 'Connection Name', defaultValue: 'SAMPLE_REST', description: 'Name of the connection for configuration')
         string(name: 'Connection file', defaultValue: 'restconnproperties.json', description: 'Path to the JSON file for configuring the connection')
 		string(name: 'Lookup Name', defaultValue: 'StateLookup', description: 'Name of the lookup to update')
-        string(name: 'Lookup file', defaultValue: 'lookupNew.json', description: 'Path to the JSON file for lookup update')
+        string(name: 'Lookup File', defaultValue: 'lookupNew.json', description: 'Path to the JSON file for lookup update')
+        string(name: 'Lookup File Path', defaultValue: 'C:/Docs/Git/Sample_Config/CountryLookup.csv', description: 'Path to the CSV file for lookup update')
        
     }
 
@@ -29,7 +30,7 @@ pipeline {
         stage('Deployment of IAR Files to OIC') {
             steps {
                 bat '''
-                curl -X PUT --header "Authorization: Basic cG9jdXNlcjpIVk9JQ01heSMyMDIz" --header "Accept:application/json" --form file=@SAMPLE_CHANDINI_01.00.0000.iar --form type=application/octet-stream  https://testinstance-idevjxz332qf-ia.integration.ocp.oraclecloud.com/ic/api/integration/v1/integrations/archive
+                curl -X PUT --header "Authorization: Basic cG9jdXNlcjpIVk9JQ01heSMyMDIz" --header "Accept:application/json" --form file=@${Integration File} --form type=application/octet-stream  ${Integration API URL}
                 '''
             }
         }
@@ -37,7 +38,7 @@ pipeline {
         stage('Configuring a connection') {
             steps {
                 bat'''
-                curl --header "Authorization: Basic ZGV2b3BzX3VzZXI6T2ljX0plbmtpbnMjMjAyMw==" --header "X-HTTP-Method-Override:PATCH" --header "Content-Type:application/json" -d @restconnproperties.json https://testinstance-idevjxz332qf-ia.integration.ocp.oraclecloud.com/ic/api/integration/v1/connections/SAMPLE_REST
+                curl --header "Authorization: Basic ZGV2b3BzX3VzZXI6T2ljX0plbmtpbnMjMjAyMw==" --header "X-HTTP-Method-Override:PATCH" --header "Content-Type:application/json" -d @${Connection file} https://testinstance-idevjxz332qf-ia.integration.ocp.oraclecloud.com/ic/api/integration/v1/connections/${Connection Name}
                 '''
             }
         }
@@ -46,10 +47,20 @@ pipeline {
 		{
 		steps { 
 				bat'''
-				curl --location --request PUT --header "Authorization: Basic ZGV2b3BzX3VzZXI6T2ljX0plbmtpbnMjMjAyMw==" --header "Content-Type:application/json" -d  @lookupNew.json https://testinstance-idevjxz332qf-ia.integration.ocp.oraclecloud.com/ic/api/integration/v1/lookups/StateLookup
+				curl --location --request PUT --header "Authorization: Basic ZGV2b3BzX3VzZXI6T2ljX0plbmtpbnMjMjAyMw==" --header "Content-Type:application/json" -d  @${Lookup File} https://testinstance-idevjxz332qf-ia.integration.ocp.oraclecloud.com/ic/api/integration/v1/lookups/${Lookup Name}
 				'''
 			}
 		}
+		
+		stage('Updating a lookup')
+		{
+		steps { 
+				bat'''		
+				curl -X PUT --header "Authorization: Basic ZGV2b3BzX3VzZXI6T2ljX0plbmtpbnMjMjAyMw==" -F file=@${Lookup File Path} -F type=application/octet-stream "https://testinstance-idevjxz332qf-ia.integration.ocp.oraclecloud.com/ic/api/integration/v1/lookups/archive"
+				'''
+			}
+		}
+		
 		
 		
         
