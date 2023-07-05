@@ -29,6 +29,8 @@ pipeline {
                     string(name: 'integrationEndpoint', defaultValue: integrationEndpoint, description: 'Integration Endpoint')
                 ]
             }
+    env.integrationEndpoint = userInput.integrationEndpoint
+			echo "integrationEndpoint: ${env.integrationEndpoint}"
 
             // Use the integrationEndpoint variable in your curl command
            
@@ -38,6 +40,7 @@ pipeline {
 			--header "X-HTTP-Method-Override: PATCH" \
 			-d @C:/Docs/Git/Sample_Config/Activation.json \
 			--location "https://testinstance-idevjxz332qf-ia.integration.ocp.oraclecloud.com/ic/api/integration/v1/integrations/" + "${integrationEndpoint}"
+			
 			'''
         }
     }
