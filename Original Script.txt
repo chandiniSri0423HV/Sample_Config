@@ -34,7 +34,15 @@ pipeline {
             }
         }
 		
-        stage('Deployment of IAR Files to OIC') {
+		stage('Deployement of an Integration'){
+			steps{
+				bat'''
+				curl --location "https://testinstance-idevjxz332qf-ia.integration.ocp.oraclecloud.com/ic/api/integration/v1/integrations/archive" --header "Authorization: Basic cG9jdXNlcjpIVk9JQ01heSMyMDIz" --form "file=@"SAMPLE_CHANDINI_01.00.0000.iar"
+				'''
+			}
+		}
+		
+        stage('Updating of IAR Files to OIC') {
             steps {
                 bat '''
                 curl -X PUT --header "Authorization: Basic cG9jdXNlcjpIVk9JQ01heSMyMDIz" --header "Accept:application/json" --form file=@SAMPLE_CHANDINI_01.00.0000.iar --form type=application/octet-stream  https://testinstance-idevjxz332qf-ia.integration.ocp.oraclecloud.com/ic/api/integration/v1/integrations/archive
@@ -50,7 +58,7 @@ pipeline {
             }
         }
         
-		stage('Configuring a lookup')
+		stage('Configuring an old lookup')
 		{
 		steps { 
 				bat'''
@@ -59,11 +67,20 @@ pipeline {
 			}
 		}
 		
-		stage('Update a lookup')
+		stage('Update an old lookup')
 		{
 		steps { 
 				bat'''
                 curl -X PUT --header "Authorization: Basic ZGV2b3BzX3VzZXI6T2ljX0plbmtpbnMjMjAyMw==" -F file=@C:/Docs/Git/Sample_Config/CountryLookup.csv -F type=application/octet-stream "https://testinstance-idevjxz332qf-ia.integration.ocp.oraclecloud.com/ic/api/integration/v1/lookups/archive"
+				'''
+			}
+		}
+		
+		stage('Configuring a new lookup')
+		{
+		steps { 
+				bat'''
+				curl --location --request PUT --header "Authorization: Basic ZGV2b3BzX3VzZXI6T2ljX0plbmtpbnMjMjAyMw==" --header "Content-Type:application/json" -d  @C:/Docs/Git/Sample_Config/CountryLookup.csv https://testinstance-idevjxz332qf-ia.integration.ocp.oraclecloud.com/ic/api/integration/v1/lookups/CountryLookup
 				'''
 			}
 		}
@@ -78,3 +95,18 @@ pipeline {
 		}
     }
 }
+
+
+->1st depoloy a new integration
+->configure an old integration
+->If need to make any changes, 1st deactivate and then activate the integration
+->Create a connection
+->configure a connection
+->create a lookup
+->update a lookup
+
+->Deactivate:
+curl -X POST --header "Authorization: Basic ZGV2b3BzX3VzZXI6T2ljX0plbmtpbnMjMjAyMw==" --header "Content-Type:application/json" --header "X-HTTP-Method-Override:PATCH" -d @C:/Docs/Git/Sample_Config/Deactivation.json -d 'enableAsyncActivationMode=true' "https://testinstance-idevjxz332qf-ia.integration.ocp.oraclecloud.com/ic/api/integration/v1/integrations/SAMPLE_CHANDINI|01.00.0000"
+->Activate:
+curl --header "Authorization: Basic ZGV2b3BzX3VzZXI6T2ljX0plbmtpbnMjMjAyMw==" --header "Content-Type:application/json" --header "X-HTTP-Method-Override:PATCH" -d @C:/Docs/Git/Sample_Config/Activation.json --location "https://testinstance-idevjxz332qf-ia.integration.ocp.oraclecloud.com/ic/api/integration/v1/integrations/SAMPLE_CHANDINI|01.00.0000"
+
